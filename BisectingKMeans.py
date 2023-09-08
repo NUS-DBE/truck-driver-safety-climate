@@ -35,6 +35,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.base import clone
 from sklearn.inspection import permutation_importance
 from rfpimp import *
+from sklearn.cluster import OPTICS
+from sklearn.cluster import HDBSCAN,BisectingKMeans
 import imblearn
 from imblearn.over_sampling import SMOTE
 from scipy.stats import spearmanr
@@ -64,45 +66,13 @@ from sklearn.inspection import PartialDependenceDisplay
 
 df = pd.read_csv('trucking factors only (wo TSF).csv')
 X = df.copy()[['OSC1','OSC2','OSC3','GSC1','GSC2','GSC3']]
-m = KMeans(n_clusters = 2, init = 'k-means++', random_state=0)
+m = BisectingKMeans(n_clusters = 2, init = 'k-means++', random_state=0)
 m.fit(X)
-# X=X.to_numpy()
-labels = m.labels_-1
-Y=labels
 
-
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import pandas as pd
-from sklearn.manifold import TSNE
-
-df = pd.read_csv('trucking factors only (wo TSF).csv')
-X = df.copy()[['OSC1', 'OSC2', 'OSC3', 'GSC1', 'GSC2', 'GSC3']]
-
-tsne = TSNE()
-X_tsne = tsne.fit_transform(X)
-
-# 创建散点图，并为不同类别的数据点添加标签
-plt.figure(figsize=(10, 8))
-scatter = plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=m.labels_, cmap=cm.jet)
-
-# 添加图例
-handles, labels = scatter.legend_elements()
-labels = list(set(m.labels_))
-plt.legend(handles, labels, title='Cluster Labels')
-
-plt.title('t-SNE Scatter Plot')
-plt.colorbar()
-plt.show()
-
-exit(0)
-
-
+# from yellowbrick.cluster import KElbowVisualizer, SilhouetteVisualizer
 # print(sum(m.labels_))
 # print(m.cluster_centers_)
-# from yellowbrick.cluster import KElbowVisualizer, SilhouetteVisualizer
-#
-# model = KMeans()
+# model = BisectingKMeans()
 # visualizer = KElbowVisualizer(model, k=(2,12), metric='calinski_harabasz', timings=False)
 #
 # visualizer.fit(X)        # Fit the data to the visualizer
@@ -115,6 +85,91 @@ exit(0)
 # visualizer.show()        # Finalize and render the figure
 #
 # exit(0)
+
+
+def silhouette_plot(X):
+    for n_clusters in range(2, 10):
+        df = pd.read_csv('trucking factors only (wo TSF).csv')
+        X = df.copy()[['OSC1','OSC2','OSC3','GSC1','GSC2','GSC3']]
+        fig = plt.figure(figsize = (10, 10))
+        ax1 = fig.add_subplot(111)
+        ax1.set_xlim([-0.4, 1])
+        ax1.set_ylim([0, len(X) + (n_clusters + 1) * 10])
+        clusterer = BisectingKMeans(n_clusters = n_clusters, init = 'k-means++', random_state=0)
+        cluster_labels = clusterer.fit_predict(X)
+        silhouette_avg = silhouette_score(X, cluster_labels)
+        print(
+            "For n_clusters =",
+            n_clusters,
+            "The average silhouette_score is :",
+            silhouette_avg,
+        )
+
+        # Compute the silhouette scores for each sample
+        sample_silhouette_values = silhouette_samples(X, cluster_labels)
+        y_lower = 10
+
+        for i in range(n_clusters):
+            # Aggregate the silhouette scores for samples belonging to
+            # cluster i, and sort them
+            ith_cluster_silhouette_values = sample_silhouette_values[cluster_labels == i]
+
+            ith_cluster_silhouette_values.sort()
+
+    #         print(ith_cluster_silhouette_values)
+            size_cluster_i = ith_cluster_silhouette_values.shape[0]
+            y_upper = y_lower + size_cluster_i
+
+            color = cm.nipy_spectral(float(i) / n_clusters)
+            ax1.fill_betweenx(
+                np.arange(y_lower, y_upper),
+                0,
+                ith_cluster_silhouette_values,
+                facecolor=color,
+                edgecolor=color,
+                alpha=0.7,
+            )
+
+            # Label the silhouette plots with their cluster numbers at the middle
+            ax1.text(-0.05, y_lower + 0.5 * size_cluster_i, str(i))
+
+            # Compute the new y_lower for next plot
+            y_lower = y_upper + 10  # 10 for the 0 samples
+
+        ax1.set_title("The silhouette plot for {} clusters.".format(n_clusters))
+        ax1.set_xlabel("The silhouette coefficient values")
+        ax1.set_ylabel("Cluster label")
+
+        # The vertical line for average silhouette score of all the values
+        ax1.axvline(x=silhouette_avg, color="red", linestyle="--")
+
+        ax1.set_yticks([])  # Clear the yaxis labels / ticks
+        ax1.set_xticks([-0.1, 0, 0.2, 0.4, 0.6, 0.8, 1])
+
+    plt.show()
+# silhouette_plot(X)
+
+
+def calculate_davies_bouldin(X):
+    for i in range(2, 10):
+        df = pd.read_csv('trucking factors only (wo TSF).csv')
+        X = df.copy()[['OSC1', 'OSC2', 'OSC3', 'GSC1', 'GSC2', 'GSC3']]
+        model = BisectingKMeans(n_clusters=i, init='k-means++', random_state=0)
+        labels = model.fit_predict(X)
+        db_index = davies_bouldin_score(X, labels)
+        print("For n_clusters = {}, Davies-Bouldin Index is {}".format(i, db_index))
+
+
+# silhouette_plot(X)
+# calculate_davies_bouldin(X)
+
+# exit(0)
+
+# m.fit(X)
+# X=X.to_numpy()
+labels = m.labels_
+Y=labels
+unique_values, counts = np.unique(labels, return_counts=True)
 
 from sklearn.model_selection import train_test_split  #数据分区
 
@@ -141,7 +196,7 @@ pdp_display.plot(ax=ax)
 plt.ylabel("Partial Dependence")
 plt.tight_layout()
 plt.show()
-# exit(0)
+exit(0)
 # https://scikit-learn.org/stable/modules/partial_dependence.html
 
 from klcompution import distribution_value
@@ -176,6 +231,7 @@ plt.legend()
 plt.show()
 print('mse',mse)
 exit(0)
+
 #
 # import shap
 # explainer = shap.Explainer(clf)
@@ -184,7 +240,7 @@ exit(0)
 #
 # shap.plots.bar(shap_values.cohorts(2).abs.mean(0))
 #
-# shap.plots.heatmap(shap_values[1:100])
+# shap.plots.heatmap(shap_values[1:1000])
 # # shap.plots.waterfall(shap_values[0]) # For the first observation
 #
 #

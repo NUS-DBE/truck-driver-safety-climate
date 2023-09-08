@@ -1,3 +1,4 @@
+from sklearn.cluster import AgglomerativeClustering
 import pandas as pd
 import numpy as np
 import seaborn as sb
@@ -45,7 +46,7 @@ from collections import defaultdict
 from sklearn import preprocessing
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import NearestNeighbors
-from sklearn.cluster import DBSCAN
+from sklearn.cluster import DBSCAN, Birch
 from matplotlib import pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from scipy.stats import spearmanr
@@ -64,45 +65,30 @@ from sklearn.inspection import PartialDependenceDisplay
 
 df = pd.read_csv('trucking factors only (wo TSF).csv')
 X = df.copy()[['OSC1','OSC2','OSC3','GSC1','GSC2','GSC3']]
-m = KMeans(n_clusters = 2, init = 'k-means++', random_state=0)
+m = Birch(n_clusters=2)
 m.fit(X)
 # X=X.to_numpy()
 labels = m.labels_-1
 Y=labels
 
 
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import pandas as pd
-from sklearn.manifold import TSNE
-
-df = pd.read_csv('trucking factors only (wo TSF).csv')
-X = df.copy()[['OSC1', 'OSC2', 'OSC3', 'GSC1', 'GSC2', 'GSC3']]
-
-tsne = TSNE()
-X_tsne = tsne.fit_transform(X)
-
-# 创建散点图，并为不同类别的数据点添加标签
-plt.figure(figsize=(10, 8))
-scatter = plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=m.labels_, cmap=cm.jet)
-
-# 添加图例
-handles, labels = scatter.legend_elements()
-labels = list(set(m.labels_))
-plt.legend(handles, labels, title='Cluster Labels')
-
-plt.title('t-SNE Scatter Plot')
-plt.colorbar()
-plt.show()
-
-exit(0)
-
-
-# print(sum(m.labels_))
-# print(m.cluster_centers_)
-# from yellowbrick.cluster import KElbowVisualizer, SilhouetteVisualizer
 #
-# model = KMeans()
+# from yellowbrick.cluster import KElbowVisualizer, SilhouetteVisualizer
+# print(sum(m.labels_))
+# labels = m.fit_predict(X)
+#
+# # 计算每个聚类的平均值作为近似聚类中心
+# cluster_centers = []
+# for cluster_label in range(2):
+#     cluster_points = X[labels == cluster_label]
+#     cluster_center = np.mean(cluster_points, axis=0)
+#     cluster_centers.append(cluster_center)
+#
+# # 输出近似的聚类中心
+# for i, center in enumerate(cluster_centers):
+#     print(f"Cluster {i} center:", center)
+# # Instantiate the clustering model and visualizer
+# model = Birch()
 # visualizer = KElbowVisualizer(model, k=(2,12), metric='calinski_harabasz', timings=False)
 #
 # visualizer.fit(X)        # Fit the data to the visualizer
@@ -141,8 +127,10 @@ pdp_display.plot(ax=ax)
 plt.ylabel("Partial Dependence")
 plt.tight_layout()
 plt.show()
-# exit(0)
+exit(0)
 # https://scikit-learn.org/stable/modules/partial_dependence.html
+
+
 
 from klcompution import distribution_value
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 12))
@@ -184,7 +172,7 @@ exit(0)
 #
 # shap.plots.bar(shap_values.cohorts(2).abs.mean(0))
 #
-# shap.plots.heatmap(shap_values[1:100])
+# shap.plots.heatmap(shap_values[1:1000])
 # # shap.plots.waterfall(shap_values[0]) # For the first observation
 #
 #
