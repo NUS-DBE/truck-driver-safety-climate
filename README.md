@@ -8,7 +8,6 @@ Code for "Factors influencing safety climate perception of truck drivers: An int
 - sklearn
 - pandas
 
-- 
 ## Dataset Download
 Dataset can be download at .
 
