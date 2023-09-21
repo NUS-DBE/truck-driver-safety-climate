@@ -1,92 +1,49 @@
-from sklearn.cluster import AgglomerativeClustering
-import pandas as pd
-import numpy as np
-import seaborn as sb
-import matplotlib.pyplot as plt
-import openpyxl
 
-from scipy import stats
-
-from pandas.plotting import scatter_matrix
-from pylab import rcParams
-import sklearn
-
-
-from sklearn.base import clone
-from sklearn.inspection import permutation_importance
 from rfpimp import *
-import imblearn
-from imblearn.over_sampling import SMOTE
-from scipy.stats import spearmanr
-from scipy.cluster import hierarchy
-from scipy.spatial.distance import squareform
-from collections import defaultdict
-# %matplotlib inline
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import NearestNeighbors
-from sklearn.cluster import DBSCAN, Birch
-from matplotlib import pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
-from scipy.stats import spearmanr
-from sklearn.metrics import silhouette_samples, silhouette_score, davies_bouldin_score
+
+
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import os
 
 
 
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.inspection import PartialDependenceDisplay
-
+from sklearn.cluster import MeanShift, estimate_bandwidth
 
 df = pd.read_csv('trucking factors only (wo TSF).csv')
 X = df.copy()[['OSC1','OSC2','OSC3','GSC1','GSC2','GSC3']]
-m = Birch(n_clusters=2)
+bandwidth = estimate_bandwidth(X, quantile=0.25)
+m = MeanShift(bandwidth=bandwidth)
 m.fit(X)
-# X=X.to_numpy()
-labels = m.labels_-1
-Y=labels
+
+ms_labels = m.fit_predict(X)-1
+print(sum(ms_labels))
 
 
+
+
+
 #
-# from yellowbrick.cluster import KElbowVisualizer, SilhouetteVisualizer
-# print(sum(m.labels_))
-# labels = m.fit_predict(X)
+# for i in [0.1,0.125,0.15,0.175,0.2,0.225,0.25,0.275,0.3]:
+#     bandwidth = estimate_bandwidth(X, quantile=i)
+#     ms = MeanShift(bandwidth=bandwidth)
+#     ms_labels = ms.fit_predict(X)
+#     print(len(set(ms_labels)))
+#     # Calculate the calinski_harabasz_score for MeanShift clustering
+#     ch_score_ms = silhouette_score(X, ms_labels)
 #
-# # 计算每个聚类的平均值作为近似聚类中心
-# cluster_centers = []
-# for cluster_label in range(2):
-#     cluster_points = X[labels == cluster_label]
-#     cluster_center = np.mean(cluster_points, axis=0)
-#     cluster_centers.append(cluster_center)
-#
-# # 输出近似的聚类中心
-# for i, center in enumerate(cluster_centers):
-#     print(f"Cluster {i} center:", center)
-# # Instantiate the clustering model and visualizer
-# model = Birch()
-# visualizer = KElbowVisualizer(model, k=(2,12), metric='calinski_harabasz', timings=False)
-#
-# visualizer.fit(X)        # Fit the data to the visualizer
-# visualizer.show()        # Finalize and render the figure
-#
-#
-# visualizer = KElbowVisualizer(model, k=(2,12), metric='silhouette', timings=False)
-#
-# visualizer.fit(X)        # Fit the data to the visualizer
-# visualizer.show()        # Finalize and render the figure
+#     print(ch_score_ms)
 #
 # exit(0)
 
 
-
-
+labels = m.labels_
+Y=labels
+unique_values, counts = np.unique(labels, return_counts=True)
 
 from sklearn.model_selection import train_test_split  #数据分区
 
 X_train,X_test,y_train,y_test=train_test_split(X,Y,test_size=0.3,random_state=0)
-
 
 
 # X, y = make_hastie_10_2(random_state=0)
@@ -98,7 +55,7 @@ print(clf.score(X_test,y_test))
 # features = [0, 1, (0, 1)]
 # features = [1, 2, (1, 2)]
 features=[0,1,2,3,4,5]
-#
+
 
 
 # from sklearn.inspection import permutation_importance
@@ -106,15 +63,18 @@ features=[0,1,2,3,4,5]
 # scoring = ['r2', 'neg_mean_absolute_percentage_error', 'neg_mean_squared_error']
 # r_multi = permutation_importance(
 #      clf, X_test, y_test, n_repeats=30, random_state=0, scoring=scoring)
-#
 # for metric in r_multi:
 #     print(f"{metric}")
 #     r = r_multi[metric]
 #     for i in r.importances_mean.argsort()[::-1]:
-#         if r.importances_mean[i] - 2 * r.importances_std[i] > 0:
-#             print(f"    {feature_names[i]:<8}"
-#                   f"{r.importances_mean[i]:.3f}"
-#                   f" +/- {r.importances_std[i]:.3f}")
+#
+#         print(f"    {feature_names[i]:<8}"
+#                 f"{r.importances_mean[i]:.3f}"
+#                 f" +/- {r.importances_std[i]:.3f}")
+
+
+
+
 pdp_display=PartialDependenceDisplay.from_estimator(clf, X_train, features,kind='both', centered=True)  #kind='both', centered=True
 fig, ax = plt.subplots(figsize=(8, 6))
 plt.title("ICE and PDP representations")
@@ -126,8 +86,6 @@ plt.tight_layout()
 plt.show()
 # exit(0)
 # # https://scikit-learn.org/stable/modules/partial_dependence.html
-#
-#
 #
 from klcompution import distribution_value
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 12))
@@ -154,13 +112,14 @@ for i in range(6):
 
     print("Kullback-Leibler Divergence:", kl)
     mse=mse+kl
-    # print(max(datadistri))
+    print(max(datadistri))
 # 调整子图布局，避免重叠
 plt.tight_layout()
 plt.legend()
 plt.show()
 print('mse',mse)
 # exit(0)
+
 
 import shap
 explainer = shap.Explainer(clf)

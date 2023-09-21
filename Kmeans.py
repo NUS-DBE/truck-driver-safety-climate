@@ -1,63 +1,7 @@
-import pandas as pd
-import numpy as np
-import seaborn as sb
-import matplotlib.pyplot as plt
-import openpyxl
-
-from scipy import stats
-
-from pandas.plotting import scatter_matrix
-from pylab import rcParams
-import sklearn
-from sklearn.preprocessing import scale
-from sklearn.linear_model import LogisticRegression
-from sklearn.naive_bayes import BernoulliNB
-from sklearn.naive_bayes import GaussianNB
-from sklearn.naive_bayes import MultinomialNB
-from sklearn.model_selection import train_test_split
-from sklearn import metrics
-from sklearn import preprocessing
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import classification_report
-from sklearn.metrics import roc_auc_score
-from sklearn import svm
-from sklearn.svm import SVC
-from sklearn.svm import LinearSVC
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.ensemble import ExtraTreesClassifier
-from sklearn.model_selection import LeaveOneOut
-from sklearn.metrics import cohen_kappa_score
-from sklearn.model_selection import RandomizedSearchCV
-from sklearn.model_selection import GridSearchCV
-from sklearn.model_selection import cross_val_score
-from sklearn.base import clone
-from sklearn.inspection import permutation_importance
 from rfpimp import *
-import imblearn
-from imblearn.over_sampling import SMOTE
-from scipy.stats import spearmanr
-from scipy.cluster import hierarchy
-from scipy.spatial.distance import squareform
-from collections import defaultdict
-# %matplotlib inline
-from sklearn import preprocessing
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import NearestNeighbors
-from sklearn.cluster import DBSCAN
-from matplotlib import pyplot as plt
-from sklearn.preprocessing import MinMaxScaler
-from scipy.stats import spearmanr
-from sklearn.metrics import silhouette_samples, silhouette_score, davies_bouldin_score
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import os
-from sklearn.neighbors import NearestNeighbors
-from sklearn.cluster import DBSCAN
+import pandas as pd
 from sklearn.cluster import KMeans
-
-
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.inspection import PartialDependenceDisplay
 
@@ -71,31 +15,6 @@ labels = m.labels_-1
 Y=labels
 
 
-import matplotlib.pyplot as plt
-import matplotlib.cm as cm
-import pandas as pd
-from sklearn.manifold import TSNE
-
-df = pd.read_csv('trucking factors only (wo TSF).csv')
-X = df.copy()[['OSC1', 'OSC2', 'OSC3', 'GSC1', 'GSC2', 'GSC3']]
-
-tsne = TSNE()
-X_tsne = tsne.fit_transform(X)
-
-# 创建散点图，并为不同类别的数据点添加标签
-plt.figure(figsize=(10, 8))
-scatter = plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=m.labels_, cmap=cm.jet)
-
-# 添加图例
-handles, labels = scatter.legend_elements()
-labels = list(set(m.labels_))
-plt.legend(handles, labels, title='Cluster Labels')
-
-plt.title('t-SNE Scatter Plot')
-plt.colorbar()
-plt.show()
-
-exit(0)
 
 
 # print(sum(m.labels_))
@@ -132,6 +51,23 @@ print(clf.score(X_test,y_test))
 # features = [1, 2, (1, 2)]
 features=[0,1,2,3,4,5]
 #
+
+
+# from sklearn.inspection import permutation_importance
+# feature_names=['OSC1','OSC2','OSC3','GSC1','GSC2','GSC3']
+# scoring = ['r2', 'neg_mean_absolute_percentage_error', 'neg_mean_squared_error']
+# r_multi = permutation_importance(
+#      clf, X_test, y_test, n_repeats=30, random_state=0, scoring=scoring)
+#
+# for metric in r_multi:
+#     print(f"{metric}")
+#     r = r_multi[metric]
+#     for i in r.importances_mean.argsort()[::-1]:
+#         if r.importances_mean[i] - 2 * r.importances_std[i] > 0:
+#             print(f"    {feature_names[i]:<8}"
+#                   f"{r.importances_mean[i]:.3f}"
+#                   f" +/- {r.importances_std[i]:.3f}")
+
 pdp_display=PartialDependenceDisplay.from_estimator(clf, X_train, features,kind='both', centered=True)  #kind='both', centered=True
 fig, ax = plt.subplots(figsize=(8, 6))
 plt.title("ICE and PDP representations")
@@ -141,9 +77,9 @@ pdp_display.plot(ax=ax)
 plt.ylabel("Partial Dependence")
 plt.tight_layout()
 plt.show()
-# exit(0)
-# https://scikit-learn.org/stable/modules/partial_dependence.html
-
+# # exit(0)
+# # https://scikit-learn.org/stable/modules/partial_dependence.html
+#
 from klcompution import distribution_value
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(15, 12))
 
@@ -175,23 +111,23 @@ plt.tight_layout()
 plt.legend()
 plt.show()
 print('mse',mse)
-exit(0)
+# exit(0)
 #
-# import shap
-# explainer = shap.Explainer(clf)
-# shap_values = explainer(X_test)
-# shap.plots.bar(shap_values, max_display=10)
-#
-# shap.plots.bar(shap_values.cohorts(2).abs.mean(0))
-#
-# shap.plots.heatmap(shap_values[1:100])
-# # shap.plots.waterfall(shap_values[0]) # For the first observation
-#
-#
-# shap.initjs()
-# explainer = shap.TreeExplainer(clf)
-#
-#
-# shap_values = explainer.shap_values(X_test)[1]
-#
-# shap.decision_plot(explainer.expected_value, shap_values, X_test)
+import shap
+explainer = shap.Explainer(clf)
+shap_values = explainer(X_test)
+shap.plots.bar(shap_values, max_display=10)
+
+shap.plots.bar(shap_values.cohorts(2).abs.mean(0))
+
+shap.plots.heatmap(shap_values[1:1000])
+# shap.plots.waterfall(shap_values[0]) # For the first observation
+
+
+shap.initjs()
+explainer = shap.TreeExplainer(clf)
+
+
+shap_values = explainer.shap_values(X_test)[1]
+
+shap.decision_plot(explainer.expected_value, shap_values, X_test)
