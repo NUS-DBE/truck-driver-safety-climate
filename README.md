@@ -1,12 +1,14 @@
 # Interpretable-clustering
 
-Code for "Factors influencing safety climate perception of truck drivers: An interpretable clustering approach".
+Code for "Improving the interpretation of safety climate cluster analysis".
 
 
 
 ## Environment
 - sklearn
 - pandas
+- rfpimp
+- matplotlib
 
 ## Dataset Download
 Dataset can be download at .
@@ -34,7 +36,7 @@ python Kmeans.py
 ```
 
 ```bash 
-BisectingKMeans.py
+Mean-Shift.py
 ```
 
 
