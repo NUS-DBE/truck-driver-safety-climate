@@ -1,6 +1,6 @@
 # Interpretable-clustering
 
-Code for "Improving the interpretation of safety climate cluster analysis".
+Code for article: [An interpretable clustering approach to safety climate analysis: examining driver group distinction in safety climate perceptions. Kailai Sun1, Tianxiang Lan, Yang Miang Goh*, Sufiana Safiena, Yueng-Hsiang Huang, Bailey Lytle, Yimin He. ](https://arxiv.org/abs/2310.19841)
 
 
 
