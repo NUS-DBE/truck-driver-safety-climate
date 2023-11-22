@@ -10,8 +10,6 @@ Code for "Improving the interpretation of safety climate cluster analysis".
 - rfpimp
 - matplotlib
 
-## Dataset Download
-Dataset can be download at .
 
 
 
